@@ -6,8 +6,8 @@ class Setting:
     def __init__(self):
         self.WIDTH = 800
         self.HEIGHT = 800
-        self.ROWS = 8
-        self.COLS = 8
+        self.SIZE = 8
+        self.ROWS = self.COLS = self.SIZE
         self.SQUARE_SIZE = self.WIDTH//self.COLS
         self.themes =  {"dark": (119, 154, 88), 
                         "light": (234, 235, 200), 

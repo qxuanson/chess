@@ -12,6 +12,7 @@ class Piece:
         self.code = None
         self.moved = False
         self.moves = []
+        self.captures = []
         self.movs = []
 
     def print_name(self):
@@ -19,6 +20,9 @@ class Piece:
 
     def add_mov(self, mov):
         self.movs.append(mov)
+
+    def add_capture(self, capture):
+        self.captures.append(capture)
 
     def add_move(self, move):
         self.moves.append(move)

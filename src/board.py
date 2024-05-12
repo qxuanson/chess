@@ -35,6 +35,7 @@ class Board:
 
     def calc_moves(self, piece):
         moves, captures = self.GetAllowedMoves(piece, isAI=False)
+        piece.add_capture(captures)
         moves.extend(captures)
         for move in moves:
             initial = Square(piece.position.x, piece.position.y)
@@ -50,6 +51,7 @@ class Board:
         piece.moved = True
         piece.movs = []
         self.last_move = move
+
         
 
     def GetPiece(self, coord):
@@ -290,7 +292,7 @@ class Board:
         #Rooks
         self.squares[0][row_other] = Square(0, row_other, Rook(Position(0, row_other), color))
         self.squares[7][row_other] = Square(7, row_other, Rook(Position(7, row_other), color))
-
+        
         #Queen
         self.squares[3][row_other] = Square(3, row_other, Queen(Position(3, row_other), color))
 

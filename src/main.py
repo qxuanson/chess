@@ -15,7 +15,8 @@ class Main:
         pygame.display.set_caption('Chess')
         pygame.display.set_icon(pygame.image.load('assets/images/icon.ico'))
         self.game = Game()
-    
+
+
     def mainloop(self):
         
         screen = self.screen
@@ -26,6 +27,7 @@ class Main:
 
         while True:
             game.show_bg(screen)
+            game.show_moves(screen)
             game.show_pieces(screen)
 
             if dragger.dragging:
@@ -43,10 +45,12 @@ class Main:
                     # if clicked square has a piece ?
                     if board.squares[clicked_col][clicked_row].has_piece():
                         piece = board.squares[clicked_col][clicked_row].piece
+                        board.calc_moves(piece)
                         dragger.save_initial(event.pos)
                         dragger.drag_piece(piece)
                         # show methods 
                         game.show_bg(screen)
+                        game.show_moves(screen)
                         game.show_pieces(screen)
                 
                 # mouse motion
@@ -54,6 +58,7 @@ class Main:
                     if dragger.dragging:
                         dragger.update_mouse(event.pos)
                         game.show_bg(screen)
+                        game.show_moves(screen)
                         game.show_pieces(screen)
                         dragger.update_blit(screen)
                 
