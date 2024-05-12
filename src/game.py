@@ -4,6 +4,8 @@ from setting import Config
 from board import Board
 from piece import *
 from dragger import Dragger
+from square import Square
+from ai import Minimax
 
 class Game:
 
@@ -12,6 +14,9 @@ class Game:
         self.hovered_sqr = None
         self.board = Board()
         self.dragger = Dragger()
+        self.gameOver = False
+        self.ComputerAI = Minimax(Config.AI_DEPTH, self.board, True, True)
+
 
     # Show methods
 
@@ -26,6 +31,17 @@ class Game:
                 rect = (col * Config.SQUARE_SIZE, row * Config.SQUARE_SIZE, Config.SQUARE_SIZE, Config.SQUARE_SIZE)
 
                 pygame.draw.rect(surface, color, rect)
+
+                if col == 0:
+                    color = Config.themes["dark"] if row % 2 == 0 else Config.themes["light"]
+                    lbl = Config.font.render(str(Config.ROWS-row), 1, color)
+                    lbl_pos = (5, 5 + row * Config.SQUARE_SIZE)
+                    surface.blit(lbl, lbl_pos)
+                if row == 7: 
+                    color = Config.themes["dark"] if (row + col) % 2 == 0 else Config.themes["light"]
+                    lbl = Config.font.render(Square.get_alphacol(col), 1, color)
+                    lbl_pos = (col * Config.SQUARE_SIZE + Config.SQUARE_SIZE -15, Config.HEIGHT - 20)
+                    surface.blit(lbl, lbl_pos)
     
     def show_pieces(self, surface):
         for row in range(Config.ROWS):
@@ -55,16 +71,16 @@ class Game:
         if self.board.checkWhiteKing:
             x = self.board.WhiteKing.position.x * Config.SQUARE_SIZE
             y = self.board.WhiteKing.position.y * Config.SQUARE_SIZE
-            pygame.draw.rect(self.screen, (240, 111, 150), [x, y, Config.SQUARE_SIZE, Config.SQUARE_SIZE])
-            self.screen.blit(self.board.WhiteKing.sprite, (x, y))
+            pygame.draw.rect(surface, (240, 111, 150), [x, y, Config.SQUARE_SIZE, Config.SQUARE_SIZE])
+            surface.blit(self.board.WhiteKing.sprite, (x, y))
         # black king in check
         elif self.board.checkBlackKing:
             x = self.board.BlackKing.position.x * Config.SQUARE_SIZE
             y = self.board.BlackKing.position.y * Config.SQUARE_SIZE
-            pygame.draw.rect(self.screen, (240, 111, 150), [x, y, Config.SQUARE_SIZE, Config.SQUARE_SIZE])
-            self.screen.blit(self.board.BlackKing.sprite, (x, y))
+            pygame.draw.rect(surface, (240, 111, 150), [x, y, Config.SQUARE_SIZE, Config.SQUARE_SIZE])
+            surface.blit(self.board.BlackKing.sprite, (x, y))
 
-        self.RenderPromoteWindow()
+        self.RenderPromoteWindow(surface)
 
 
     def show_last_move(self, surface):
@@ -75,14 +91,8 @@ class Game:
             y1 = oldPosition.y * Config.SQUARE_SIZE
             x2 = nPosition.x * Config.SQUARE_SIZE
             y2 = nPosition.y * Config.SQUARE_SIZE
-            pygame.draw.rect(self.screen, (244,247,116), [x1, y1, Config.SQUARE_SIZE, Config.SQUARE_SIZE])
-            pygame.draw.rect(self.screen, (172, 195, 51), [x2, y2, Config.SQUARE_SIZE, Config.SQUARE_SIZE])
-        for x in range(Config.SIZE):
-            for y in range(Config.SIZE):
-                x_pos = x * Config.SQUARE_SIZE
-                y_pos = y * Config.SQUARE_SIZE
-                if self.board.squares[x][y].piece != None:
-                    self.screen.blit(self.board.squares[x][y].piece.sprite, (x_pos, y_pos))
+            pygame.draw.rect(surface, (244,247,116), [x1, y1, Config.SQUARE_SIZE, Config.SQUARE_SIZE])
+            pygame.draw.rect(surface, (172, 195, 51), [x2, y2, Config.SQUARE_SIZE, Config.SQUARE_SIZE])
 
     def show_hover(self, surface):
         if self.hovered_sqr:
@@ -98,23 +108,24 @@ class Game:
     def set_hover(self, row, col):
         self.hovered_sqr = self.board.squares[row][col]
 
-    def RenderPromoteWindow(self):
+    def RenderPromoteWindow(self, surface):
         if self.board.pieceToPromote:
             if self.board.pieceToPromote.color == 0:
                 x = self.board.pieceToPromote.position.x * Config.SQUARE_SIZE
                 y = self.board.pieceToPromote.position.y * Config.SQUARE_SIZE
-                pygame.draw.rect(self.screen, (200, 200, 200), [x, y, Config.SQUARE_SIZE , Config.SQUARE_SIZE * 4])
+                pygame.draw.rect(surface, (200, 200, 200), [x, y, Config.SQUARE_SIZE , Config.SQUARE_SIZE * 4])
                 for i in range(4):
                     piece = self.board.whitePromotions[i]
-                    self.screen.blit(piece.sprite, (x, i * Config.SQUARE_SIZE))
+                    surface.blit(piece.sprite, (x, i * Config.SQUARE_SIZE))
                     bottomY = i * Config.SQUARE_SIZE - 1
-                    pygame.draw.rect(self.screen, (0, 0, 0), [x, bottomY, Config.SQUARE_SIZE , 2])
+                    pygame.draw.rect(surface, (0, 0, 0), [x, bottomY, Config.SQUARE_SIZE , 2])
             else:
                 x = self.board.pieceToPromote.position.x * Config.SQUARE_SIZE
                 y = (self.board.pieceToPromote.position.y - 3) * Config.SQUARE_SIZE
-                pygame.draw.rect(self.screen, (200, 200, 200), [x, y, Config.SQUARE_SIZE , Config.SQUARE_SIZE * 4])
+                pygame.draw.rect(surface, (200, 200, 200), [x, y, Config.SQUARE_SIZE , Config.SQUARE_SIZE * 4])
                 for i in range(4):
                     piece = self.board.blackPromotions[i]
-                    self.screen.blit(piece.sprite, (x, (i+4) * Config.SQUARE_SIZE))
+                    surface.blit(piece.sprite, (x, (i+4) * Config.SQUARE_SIZE))
                     bottomY = (i + 4) * Config.SQUARE_SIZE - 1
-                    pygame.draw.rect(self.screen, (0, 0, 0), [x, bottomY, Config.SQUARE_SIZE , 2])
+                    pygame.draw.rect(surface, (0, 0, 0), [x, bottomY, Config.SQUARE_SIZE , 2])
+

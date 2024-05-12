@@ -9,9 +9,11 @@ class Setting:
         self.SIZE = 8
         self.ROWS = self.COLS = self.SIZE
         self.SQUARE_SIZE = self.WIDTH//self.COLS
+        self.AI_DEPTH = 3
         self.themes =  {"dark": (119, 154, 88), 
                         "light": (234, 235, 200), 
                         "outline": (0, 0, 0)}
+        self.font = pygame.font.SysFont('monospace', 18, bold=True)
         
         self.capture_sound = pygame.mixer.Sound("./assets/sounds/capture_sound.mp3")
         self.castle_sound = pygame.mixer.Sound("./assets/sounds/castle_sound.mp3")

@@ -13,7 +13,6 @@ class Piece:
         self.moved = False
         self.moves = []
         self.captures = []
-        self.movs = []
 
     def print_name(self):
         print(self.code)

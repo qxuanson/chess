@@ -38,21 +38,76 @@ class Board:
         piece.add_capture(captures)
         moves.extend(captures)
         for move in moves:
-            initial = Square(piece.position.x, piece.position.y)
-            final = Square(move.x, move.y)
+            initial = Square(piece.position.x, piece.position.y, piece)
+            final_piece = self.squares[move.x][move.y].piece
+            final = Square(move.x, move.y, final_piece)
             mov = Move(initial, final)
-            piece.add_mov(mov)
             piece.add_move(move)
 
     def move(self, piece, move):
         initial = move.initial
         final = move.final
-        self.squares
+
+        self.Move(piece, Position(final.row, final.col))
+
+        #self.squares[initial.row][initial.col].piece = None
+        #self.squares[final.row][final.col].piece = piece
+        
+        #move
         piece.moved = True
-        piece.movs = []
+
+        #clear
+        piece.moves = []
+        
         self.last_move = move
 
-        
+
+    def valid_move(self, piece, move):
+        final = move.final
+        pos = Position(final.row, final.col)
+        print('final position', final.row, final.col)
+        if pos in piece.moves:
+            check = True
+        else:
+            check = False
+        print('check valid move', check)
+        return check
+    
+    def Move(self, piece, position):
+        if position != None:
+            position = position.GetCopy()
+            # print(position)
+            if self.isCastling(piece, position.GetCopy()):
+                self.CastleKing(piece, position.GetCopy())
+            elif self.isEnPassant(piece, position.GetCopy()):
+                self.squares[position.x][piece.position.y].piece = None
+                Config.castle_sound.play()
+                self.MovePiece(piece, position)
+                self.historic[-1][2] = piece.code + " EP"
+            else:
+                if self.squares[position.x][position.y].piece != None:
+                    Config.capture_sound.play()
+                else:
+                    Config.move_sound.play()
+                self.MovePiece(piece, position)
+            # check for promotion
+            if type(piece) == Pawn and (piece.position.y == 0 or piece.position.y == 7):
+                self.pieceToPromote = piece
+            else:
+                self.SwitchTurn()
+            self.Check()
+
+    def MovePiece(self, piece, position):
+        position = position.GetCopy()
+        self.squares[piece.position.x][piece.position.y].piece = None
+        old_position = piece.position.GetCopy()
+        piece.updatePosition(position)
+        self.squares[position.x][position.y].piece = piece
+        self.historic.append([self.moveIndex, piece.color, piece.code, old_position, piece.position, piece])
+        piece.previousMove = self.moveIndex
+        self.moveIndex += 1
+        self.checkBlackKing = False
+        self.checkWhiteKing = False
 
     def GetPiece(self, coord):
         return self.squares[coord.x][coord.y].piece
@@ -72,7 +127,7 @@ class Board:
         return None if not self.historic else self.historic[-1]
 
     def RecentMovePositions(self):
-        if not self.historic or len(self.historic) <= 1:
+        if not self.historic or len(self.historic) < 1:
             return None, None
         pos = self.historic[-1][3]
         oldPos = self.historic[-1][4]
@@ -171,6 +226,7 @@ class Board:
                 if square.piece != None and square.piece.color != self.player:
                     moves, captures = self.GetAllowedMoves(square.piece)
                     if king.position in captures:
+                        Config.checkmate_sound.play()
                         if self.player == 1:
                             self.checkBlackKing = True
                             return
@@ -199,37 +255,6 @@ class Board:
             self.winner = -1
         return True
     
-    def Move(self, piece, position):
-        if position != None:
-            position = position.GetCopy()
-            # print(position)
-            if self.isCastling(piece, position.GetCopy()):
-                self.CastleKing(piece, position.GetCopy())
-            elif self.isEnPassant(piece, position.GetCopy()):
-                self.squares[position.x][piece.position.y].piece = None
-                self.MovePiece(piece, position)
-                self.historic[-1][2] = piece.code + " EP"
-            else:
-                self.MovePiece(piece, position)
-            # check for promotion
-            if type(piece) == Pawn and (piece.position.y == 0 or piece.position.y == 7):
-                self.pieceToPromote = piece
-            else:
-                self.SwitchTurn()
-            self.Check()
-
-    def MovePiece(self, piece, position):
-        position = position.GetCopy()
-        self.squares[piece.position.x][piece.position.y].piece = None
-        old_position = piece.position.GetCopy()
-        piece.updatePosition(position)
-        self.squares[position.x][position.y].piece = piece
-        self.historic.append([self.moveIndex, piece.color, piece.code, old_position, piece.position, piece])
-        piece.previousMove = self.moveIndex
-        self.moveIndex += 1
-        self.checkBlackKing = False
-        self.checkWhiteKing = False
-    
     def PromotePawn(self, pawn, choice):
         if choice == 0:
             self.squares[pawn.position.x][pawn.position.y].piece = Queen(pawn.position.GetCopy(), pawn.color)
@@ -239,7 +264,7 @@ class Board:
             self.squares[pawn.position.x][pawn.position.y].piece = Knight(pawn.position.GetCopy(), pawn.color)
         elif choice == 3:
             self.squares[pawn.position.x][pawn.position.y].piece = Rook(pawn.position.GetCopy(), pawn.color)
-
+        Config.castle_sound.play()
         self.SwitchTurn()
         self.Check()
         self.pieceToPromote = None
@@ -265,7 +290,7 @@ class Board:
             rook.previousMove = self.moveIndex - 1
             self.squares[rook.position.x][rook.position.y].piece = rook
             self.historic[-1][2] = king.code + " C"
-            Config.sounds.castle_sound.play()
+            Config.castle_sound.play()
 
     def _create(self):
         self.squares = [[0, 0, 0, 0, 0, 0, 0, 0] for col in range(Config.COLS)]
