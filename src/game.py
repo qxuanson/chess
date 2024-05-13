@@ -129,3 +129,33 @@ class Game:
                     bottomY = (i + 4) * Config.SQUARE_SIZE - 1
                     pygame.draw.rect(surface, (0, 0, 0), [x, bottomY, Config.SQUARE_SIZE , 2])
 
+    def ComputerMoves(self, player):
+        if self.board.player == player:
+            print ('Computer calculating moves ....')
+            piece, bestmove = self.ComputerAI.Start(0)
+            # print(bestmove)
+            self.board.Move(piece, bestmove)
+            if self.board.pieceToPromote != None:
+                self.board.PromotePawn(self.board.pieceToPromote, 0)
+
+    def vsComputer(self):
+        #sounds.game_start_sound.play()
+        while not self.gameOver:
+            # update window caption
+            pygame.display.set_caption("Chess : VS Computer ")
+            self.ComputerMoves(1)
+            self.IsGameOver()
+
+
+    def multiplayer(self):
+        #sounds.game_start_sound.play()
+        while not self.gameOver:
+            # update window caption
+            pygame.display.set_caption("Chess : Multiplayer ")
+            self.IsGameOver()
+
+    def IsGameOver(self):
+        if self.board.winner != None:
+            self.gameOver = True
+            print("the game is over")
+            self.board.player = 2

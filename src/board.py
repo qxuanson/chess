@@ -291,6 +291,19 @@ class Board:
             self.squares[rook.position.x][rook.position.y].piece = rook
             self.historic[-1][2] = king.code + " C"
             Config.castle_sound.play()
+    
+    def MoveSimulation(self, piece, next_pos):
+        if self.squares[next_pos.x][next_pos.y].piece == None:
+            self.squares[piece.position.x][piece.position.y].piece = None
+            piece.position = next_pos.GetCopy()
+            self.squares[next_pos.x][next_pos.y].piece = piece
+            return None
+        else:
+            prev_piece = self.squares[next_pos.x][next_pos.y].piece
+            self.squares[piece.position.x][piece.position.y].piece = None
+            piece.position = next_pos.GetCopy()
+            self.squares[next_pos.x][next_pos.y].piece = piece
+            return prev_piece
 
     def _create(self):
         self.squares = [[0, 0, 0, 0, 0, 0, 0, 0] for col in range(Config.COLS)]
